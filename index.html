@@ -14,7 +14,7 @@
     <!-- navigation bar -->
     <header>
       <nav class="navbar">
-        <h1 style="color: yellow;"><a href="index.html">Book Shelf</a></h1>
+        <h1 style="color: yellow"><a href="index.html">Book Shelf</a></h1>
         <ul class="ul-list">
           <li><a href="favorites.html">Favorites</a></li>
           <li><a href="readlist.html">ReadList</a></li>
@@ -25,14 +25,15 @@
     <!-- search box -->
     <div class="search-container">
       <input type="text" id="search-bar" placeholder="Search for books" />
-      <input type="button" value="Submit" id="search-button" onclick="searchBooks()">
+      <input
+        type="button"
+        value="Submit"
+        id="search-button"
+        onclick="searchBooks()"
+      />
     </div>
 
     <!-- book cards -->
     <div id="books-container"></div>
-    </div>
-
-    
-
   </body>
 </html>

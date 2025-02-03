@@ -1,3 +1,54 @@
+let favorites = [];
+
+// Function to render books
+const renderBooks = (books) => {
+  booksContainer.innerHTML = ""; // Clear previous results
+
+  books.forEach((book) => {
+    const title = book.title || "No Title Available";
+    const coverId = book.cover_i;
+    const coverUrl = coverId
+      ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`
+      : "https://via.placeholder.com/150?text=No+Image";
+
+    // Create book card with a favorite button
+    booksContainer.insertAdjacentHTML(
+      "beforeend",
+      `<div class="book-card">
+          <div class="book-cover">
+            <img src="${coverUrl}" alt="${title}" />
+            <p>${title}</p>
+          </div>
+          <div class="cover-buttons">
+            <button class="favorite-button" data-title="${title}" data-cover="${coverUrl}">
+              Add to Favorites
+            </button>
+            <button>Add to Read List</button>
+          </div>
+        </div>`
+    );
+  });
+  const favoritesButton = document.querySelectorAll(".favorite-button");
+
+  favoritesButton.forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const title = e.target.getAttribute("data-title");
+      const coverUrl = e.target.getAttribute("data-cover");
+
+      const isAlreadyFavorite = favorites.some((fav) => fav.title === title);
+
+      if (!isAlreadyFavorite) {
+        favorites.push({ title, coverUrl });
+        e.target.textContent = "Added to favorites";
+        e.target.disbled = true;
+        console.log(favorites);
+      } else {
+        alert("This book is already in your favorites!");
+      }
+    });
+  });
+};
+
 const searchBooks = async (query) => {
   try {
     if (!query) {
@@ -16,7 +67,10 @@ const searchBooks = async (query) => {
 
     // Filter books with a defined title and matching query
     const filteredBooks = data.docs
-      .filter((book) => book.title && book.title.toLowerCase().includes(query.toLowerCase()))
+      .filter(
+        (book) =>
+          book.title && book.title.toLowerCase().includes(query.toLowerCase())
+      )
       .slice(0, 10);
 
     if (filteredBooks.length === 0) {
@@ -24,35 +78,7 @@ const searchBooks = async (query) => {
       return;
     }
 
-    // Clear loading message and display the books
-    booksContainer.innerHTML = "";
-    filteredBooks.forEach((book) => {
-      const title = book.title || "No Title Available";
-      const coverId = book.cover_i;
-      const coverUrl = coverId
-        ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`
-        : "https://via.placeholder.com/150?text=No+Image";
-
-      // Highlight query term in the title
-      // const highlightedTitle = title.replace(
-      //   new RegExp(query, "gi"),
-      //   (match) => `<span style="background: yellow;">${match}</span>`
-      // );
-
-      booksContainer.insertAdjacentHTML(
-        "beforeend",
-        `<div class="book-card">
-            <div class="book-cover">
-              <img src="${coverUrl}" alt="${title}" />
-              <p>${title}</p>
-            </div>
-            <div class="cover-buttons">
-              <button>Add to favorites</button>
-              <button>Add to read list</button>
-            </div>
-          </div>`
-      );
-    });
+    renderBooks(filteredBooks);
   } catch (error) {
     console.error("Error:", error);
     booksContainer.innerHTML = `<p>Something went wrong while fetching books. Please try again.</p>`;

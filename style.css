@@ -153,3 +153,7 @@ a:hover {
 .cover-buttons button:active {
   background-color: yellow;
 }
+
+p {
+  text-align: center;
+}
