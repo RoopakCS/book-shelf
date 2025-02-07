@@ -1,4 +1,45 @@
-let favorites = [];
+let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+const saveFavorites = () => {
+  localStorage.setItem("favorites", JSON.stringify(favorites));
+};
+
+// Function to render favorite book
+
+const renderFavorites = () => {
+  const favBookContainer = document.getElementById("fav-books-container");
+  if (!favBookContainer) return;
+  favBookContainer.innerHTML = "";
+
+  if (favorites.length === 0) {
+    favBookContainer.innerHTML = "<p>No favorite books yet.</p>";
+    return;
+  }
+
+  favorites.forEach((book, index) => {
+    favBookContainer.insertAdjacentHTML(
+      "beforeend",
+      `<div class="book-card">
+          <div class="book-cover">
+            <img src="${book.coverUrl}" alt="${book.title}" />
+            <p>${book.title}</p>
+          </div>
+          <div class="cover-buttons">
+            <button class="remove-favorite" data-index="${index}">Remove</button>
+          </div>
+        </div>`
+    );
+  });
+
+  document.querySelectorAll(".remove-favorite").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const index = e.target.getAttribute("data-index");
+      favorites.splice(index, 1);
+      saveFavorites();
+      renderFavorites();
+    });
+  });
+};
 
 // Function to render books
 const renderBooks = (books) => {
@@ -39,8 +80,10 @@ const renderBooks = (books) => {
 
       if (!isAlreadyFavorite) {
         favorites.push({ title, coverUrl });
+        saveFavorites();
         e.target.textContent = "Added to favorites";
-        e.target.disbled = true;
+        e.target.disabled = true;
+        renderFavorites();
         console.log(favorites);
       } else {
         alert("This book is already in your favorites!");
@@ -85,16 +128,25 @@ const searchBooks = async (query) => {
   }
 };
 
-// Event listener
-const searchButton = document.getElementById("search-button");
 const booksContainer = document.getElementById("books-container");
+const searchButton = document.getElementById("search-button");
 
-searchButton.addEventListener("click", () => {
-  const query = document.getElementById("search-bar").value.trim();
-  if (query) {
-    booksContainer.innerHTML = ""; // Clear previous results
-    searchBooks(query); // Call searchBooks with the query
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("JavaScript loaded");
+
+  if (searchButton) {
+    searchButton.addEventListener("click", () => {
+      const query = document.getElementById("search-bar").value.trim();
+      if (query) {
+        booksContainer.innerHTML = "";
+        searchBooks(query);
+      } else {
+        booksContainer.innerHTML = "<p>Please enter a search term.</p>";
+      }
+    });
   } else {
-    booksContainer.innerHTML = "<p>Please enter a search term.</p>";
+    console.warn("searchButton not found. Skipping event listener setup.");
   }
+
+  renderFavorites();
 });
