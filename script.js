@@ -1,11 +1,16 @@
 let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+let readList = JSON.parse(localStorage.getItem("readList")) || [];
 
+// To save favorite movies to local storage
 const saveFavorites = () => {
   localStorage.setItem("favorites", JSON.stringify(favorites));
 };
 
-// Function to render favorite book
+const saveReadList = () => {
+  localStorage.setItem("readList", JSON.stringify(readList));
+};
 
+// Function to render favorite book
 const renderFavorites = () => {
   const favBookContainer = document.getElementById("fav-books-container");
   if (!favBookContainer) return;
@@ -41,6 +46,42 @@ const renderFavorites = () => {
   });
 };
 
+// Function to render read list
+const renderReadList = () => {
+  const readListContainer = document.getElementById("read-list-container");
+  if (!readListContainer) return;
+  readListContainer.innerHTML = "";
+
+  if (readList.length === 0) {
+    readListContainer.innerHTML = "<p>No books in the Read Later list.</p>";
+    return;
+  }
+
+  readList.forEach((book, index) => {
+    readListContainer.insertAdjacentHTML(
+      "beforeend",
+      `<div class="book-card">
+          <div class="book-cover">
+            <img src="${book.coverUrl}" alt="${book.title}" />
+            <p>${book.title}</p>
+          </div>
+          <div class="cover-buttons">
+            <button class="remove-readlist" data-index="${index}">Remove</button>
+          </div>
+        </div>`
+    );
+  });
+
+  document.querySelectorAll(".remove-readlist").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const index = e.target.getAttribute("data-index");
+      readList.splice(index, 1);
+      saveReadList();
+      renderReadList();
+    });
+  });
+};
+
 // Function to render books
 const renderBooks = (books) => {
   booksContainer.innerHTML = ""; // Clear previous results
@@ -64,7 +105,9 @@ const renderBooks = (books) => {
             <button class="favorite-button" data-title="${title}" data-cover="${coverUrl}">
               Add to Favorites
             </button>
-            <button>Add to Read List</button>
+            <button class="readlist-button" data-title="${title}" data-cover="${coverUrl}">
+              Add to Read List
+            </button>
           </div>
         </div>`
     );
@@ -81,7 +124,7 @@ const renderBooks = (books) => {
       if (!isAlreadyFavorite) {
         favorites.push({ title, coverUrl });
         saveFavorites();
-        e.target.textContent = "Added to favorites";
+        e.target.textContent = "Added to Favorites";
         e.target.disabled = true;
         renderFavorites();
         console.log(favorites);
@@ -90,8 +133,31 @@ const renderBooks = (books) => {
       }
     });
   });
+
+  const readListButton = document.querySelectorAll(".readlist-button");
+
+  readListButton.forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const title = e.target.getAttribute("data-title");
+      const coverUrl = e.target.getAttribute("data-cover");
+
+      const isAlreadyInReadList = readList.some((book) => book.title === title);
+
+      if (!isAlreadyInReadList) {
+        readList.push({ title, coverUrl });
+        saveReadList();
+        e.target.textContent = "Added to Read List";
+        e.target.disabled = true;
+        renderReadList();
+        console.log(readList)
+      } else {
+        alert("This book is already in your Read Later list!");
+      }
+    });
+  });
 };
 
+// function to search the book
 const searchBooks = async (query) => {
   try {
     if (!query) {
@@ -101,6 +167,7 @@ const searchBooks = async (query) => {
 
     booksContainer.innerHTML = "<p>Loading...</p>"; // Show loading message
 
+    // Fetching the book
     const response = await fetch(
       `https://openlibrary.org/search.json?q=${query}`
     );
@@ -114,7 +181,7 @@ const searchBooks = async (query) => {
         (book) =>
           book.title && book.title.toLowerCase().includes(query.toLowerCase())
       )
-      .slice(0, 10);
+      .slice(0, 20);
 
     if (filteredBooks.length === 0) {
       booksContainer.innerHTML = "<p>No relevant books found.</p>";
@@ -133,7 +200,7 @@ const searchButton = document.getElementById("search-button");
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("JavaScript loaded");
-
+  // Calling the function to search the book
   if (searchButton) {
     searchButton.addEventListener("click", () => {
       const query = document.getElementById("search-bar").value.trim();
@@ -149,4 +216,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderFavorites();
+  renderReadList()
 });
